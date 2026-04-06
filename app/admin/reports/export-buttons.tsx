@@ -3,17 +3,23 @@
 import { Download, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 
 type ExportFilter = 'all' | 'paid' | 'pending'
 
-export function ExportButtons() {
+interface ExportButtonsProps {
+  productId?: string
+}
+
+export function ExportButtons({ productId }: ExportButtonsProps) {
   const [loading, setLoading] = useState<ExportFilter | null>(null)
 
   async function handleExport(filter: ExportFilter) {
     setLoading(filter)
     try {
-      const res = await fetch(`/api/reports/export?filter=${filter}`)
+      const params = new URLSearchParams({ filter })
+      if (productId) params.set('product_id', productId)
+
+      const res = await fetch(`/api/reports/export?${params.toString()}`)
       if (!res.ok) throw new Error('Erro ao exportar')
 
       const blob = await res.blob()
@@ -31,42 +37,28 @@ export function ExportButtons() {
     }
   }
 
-  const filters: { label: string; filter: ExportFilter; color: string }[] = [
-    {
-      label: 'Todos',
-      filter: 'all',
-      color: 'border-zinc-700 text-zinc-300 hover:bg-zinc-800',
-    },
-    {
-      label: 'Pagos',
-      filter: 'paid',
-      color: 'border-green-500/30 text-green-400 hover:bg-green-500/10',
-    },
-    {
-      label: 'Pendentes',
-      filter: 'pending',
-      color: 'border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10',
-    },
+  const filters: { label: string; filter: ExportFilter; style: string }[] = [
+    { label: 'Exportar Todos', filter: 'all', style: 'border-zinc-700 text-zinc-300 hover:bg-zinc-800' },
+    { label: 'Só Pagos', filter: 'paid', style: 'border-green-500/30 text-green-400 hover:bg-green-500/10' },
+    { label: 'Só Pendentes', filter: 'pending', style: 'border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10' },
   ]
 
   return (
-    <div className="flex gap-2">
-      {filters.map(({ label, filter, color }) => (
-        <Button
+    <div className="grid grid-cols-3 gap-2">
+      {filters.map(({ label, filter, style }) => (
+        <button
           key={filter}
-          variant="outline"
-          size="sm"
           onClick={() => handleExport(filter)}
           disabled={loading !== null}
-          className={`${color} text-xs`}
+          className={`flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg border text-xs font-semibold transition-colors disabled:opacity-50 ${style}`}
         >
           {loading === filter ? (
-            <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
-            <Download className="mr-1.5 h-3 w-3" />
+            <Download className="h-3.5 w-3.5" />
           )}
-          CSV {label}
-        </Button>
+          <span>{label}</span>
+        </button>
       ))}
     </div>
   )

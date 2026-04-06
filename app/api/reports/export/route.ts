@@ -11,6 +11,7 @@ function getClient() {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const filter = searchParams.get('filter') || 'all'
+  const productId = searchParams.get('product_id')
 
   const supabase = getClient()
   let query = supabase
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
 
   if (filter === 'paid') query = query.eq('status', 'paid')
   if (filter === 'pending') query = query.eq('status', 'pending')
+  if (productId) query = query.eq('product_id', productId)
 
   const { data, error } = await query
   if (error) return NextResponse.json({ message: error.message }, { status: 500 })
