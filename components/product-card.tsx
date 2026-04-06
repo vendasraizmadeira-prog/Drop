@@ -3,9 +3,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ShoppingBag } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/utils'
 import type { Product } from '@/types'
 
@@ -15,57 +12,56 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   return (
-    <Card className="group overflow-hidden bg-zinc-900 border-zinc-800 hover:border-red-500 transition-all duration-300">
-      <div className="relative overflow-hidden aspect-square">
+    <div className="group bg-white rounded-2xl overflow-hidden border border-brown-100 hover:border-brown-300 hover:shadow-lg transition-all duration-300">
+      {/* Image */}
+      <div className="relative overflow-hidden aspect-[4/5] bg-brown-50">
         <Image
-          src={product.image_url || 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=500&q=80'}
+          src={product.image_url || 'https://images.unsplash.com/photo-1594938298603-c8148c4b4e39?w=500&q=80'}
           alt={product.name}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <Link href={`/products/${product.id}`}>
-            <Button className="w-full bg-red-500 hover:bg-red-600 text-white font-bold" size="lg">
-              <ShoppingBag className="mr-2 h-5 w-5" />
-              Ver Detalhes
-            </Button>
+        {/* Overlay com botão */}
+        <div className="absolute inset-0 bg-brown-900/0 group-hover:bg-brown-900/20 transition-all duration-300 flex items-end p-4">
+          <Link href={`/products/${product.id}`} className="w-full translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+            <button className="w-full bg-white text-brown-700 font-semibold text-sm py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-brown-50 shadow-md">
+              <ShoppingBag className="h-4 w-4" />
+              Ver detalhes
+            </button>
           </Link>
         </div>
       </div>
 
-      <CardContent className="p-4">
+      {/* Info */}
+      <div className="p-4">
+        {/* Tamanhos */}
         <div className="flex flex-wrap gap-1 mb-2">
           {product.sizes.map((size) => (
-            <Badge
-              key={size}
-              variant="outline"
-              className="text-xs border-zinc-700 text-zinc-400"
-            >
+            <span key={size} className="text-[10px] font-semibold text-brown-500 bg-brown-50 border border-brown-200 px-1.5 py-0.5 rounded">
               {size}
-            </Badge>
+            </span>
           ))}
         </div>
-        <h3 className="font-bold text-white text-lg leading-tight mb-1 line-clamp-1">
+
+        <h3 className="font-serif font-bold text-brown-800 text-base leading-tight mb-1 line-clamp-1">
           {product.name}
         </h3>
-        <p className="text-zinc-400 text-sm line-clamp-2 mb-3">{product.description}</p>
-        <div className="flex items-center justify-between">
-          <span className="text-red-400 font-black text-xl">
+        <p className="text-brown-500 text-xs line-clamp-2 mb-3 leading-relaxed">
+          {product.description}
+        </p>
+
+        <div className="flex items-center justify-between pt-2 border-t border-brown-100">
+          <span className="font-serif font-bold text-brown-700 text-lg">
             {formatCurrency(product.price)}
           </span>
           <Link href={`/products/${product.id}`}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white"
-            >
+            <button className="bg-brown-500 hover:bg-brown-600 text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors">
               Encomendar
-            </Button>
+            </button>
           </Link>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

@@ -3,8 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { CheckCircle2, MessageCircle, ArrowLeft, ShoppingBag } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { CheckCircle2, MessageCircle, ShoppingBag, Heart } from 'lucide-react'
 import { Navbar } from '@/components/navbar'
 import { PixQRCode } from '@/components/pix-qr-code'
 import { generateWhatsAppOrderLink } from '@/lib/whatsapp'
@@ -12,7 +11,6 @@ import { formatCurrency } from '@/lib/utils'
 
 function SuccessContent() {
   const params = useSearchParams()
-
   const customerName = params.get('customerName') || ''
   const customerPhone = params.get('customerPhone') || ''
   const productName = params.get('productName') || ''
@@ -22,7 +20,7 @@ function SuccessContent() {
   const pixKey = params.get('pixKey') || ''
 
   const whatsappLink = generateWhatsAppOrderLink({
-    vendorNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5511999999999',
+    vendorNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '5517981274774',
     customerName,
     customerPhone,
     productName,
@@ -32,109 +30,104 @@ function SuccessContent() {
   })
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="container py-8 max-w-xl">
+      <div className="container py-8 max-w-lg">
+        {/* Confirmação */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/10 border border-green-500/30 mb-4">
-            <CheckCircle2 className="h-8 w-8 text-green-400" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-50 border-2 border-green-200 mb-4">
+            <CheckCircle2 className="h-8 w-8 text-green-500" />
           </div>
-          <h1 className="text-3xl font-black text-white mb-2">Encomenda Registrada!</h1>
-          <p className="text-zinc-400">
-            Agora realize o pagamento via PIX e envie a confirmação pelo WhatsApp.
+          <h1 className="font-serif text-3xl font-bold text-brown-800 mb-2">Encomenda Registrada!</h1>
+          <p className="text-brown-500 text-sm">
+            Realize o pagamento via PIX e confirme pelo WhatsApp.
           </p>
         </div>
 
-        {/* Order Summary */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 mb-6">
-          <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">
-            Resumo da Encomenda
+        {/* Resumo */}
+        <div className="bg-white border border-brown-100 rounded-2xl p-5 mb-5 shadow-sm">
+          <h3 className="text-xs font-bold text-brown-400 uppercase tracking-widest mb-4">
+            Resumo do Pedido
           </h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Produto</span>
-              <span className="text-white font-medium">{productName}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Cliente</span>
-              <span className="text-white font-medium">{customerName}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Tamanho</span>
-              <span className="text-white font-medium">{size}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Quantidade</span>
-              <span className="text-white font-medium">{quantity}</span>
-            </div>
-            <div className="flex justify-between pt-2 border-t border-zinc-800">
-              <span className="text-zinc-400 font-semibold">Total</span>
-              <span className="text-red-400 font-black text-lg">{formatCurrency(total)}</span>
+          <div className="space-y-2.5 text-sm">
+            {[
+              { label: 'Produto', value: productName },
+              { label: 'Cliente', value: customerName },
+              { label: 'Tamanho', value: size },
+              { label: 'Quantidade', value: quantity },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex justify-between">
+                <span className="text-brown-400">{label}</span>
+                <span className="text-brown-700 font-medium">{value}</span>
+              </div>
+            ))}
+            <div className="flex justify-between pt-3 border-t border-brown-100">
+              <span className="font-semibold text-brown-700">Total</span>
+              <span className="font-serif font-bold text-brown-700 text-xl">{formatCurrency(total)}</span>
             </div>
           </div>
         </div>
 
-        {/* PIX Section */}
+        {/* PIX */}
         {pixKey ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-6">
-            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-6 text-center">
+          <div className="bg-white border border-brown-100 rounded-2xl p-6 mb-5 shadow-sm">
+            <h3 className="text-xs font-bold text-brown-400 uppercase tracking-widest mb-6 text-center">
               Pagamento via PIX
             </h3>
             <PixQRCode
               pixKey={pixKey}
               amount={total}
-              merchantName="LOJA"
-              merchantCity="BRASIL"
+              merchantName="MARANATHA"
+              merchantCity="IRAPUA"
               description={`Encomenda ${productName}`}
             />
           </div>
         ) : (
-          <div className="bg-zinc-900 border border-yellow-500/20 rounded-xl p-5 mb-6 text-center">
-            <p className="text-yellow-400 text-sm">
-              A chave PIX ainda não foi configurada. Entre em contato pelo WhatsApp para obter os
-              dados de pagamento.
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5 mb-5 text-center">
+            <p className="text-yellow-700 text-sm">
+              A chave PIX ainda não foi configurada. Entre em contato pelo WhatsApp.
             </p>
           </div>
         )}
 
         {/* WhatsApp CTA */}
         <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
-          <Button
-            size="xl"
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-black uppercase tracking-wide mb-4"
-          >
-            <MessageCircle className="mr-2 h-6 w-6" />
-            Enviar confirmação pelo WhatsApp
-          </Button>
+          <button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors text-base shadow-md mb-3">
+            <MessageCircle className="h-5 w-5" />
+            Confirmar pelo WhatsApp
+          </button>
         </a>
-
-        <p className="text-xs text-zinc-600 text-center mb-8">
-          Clique acima para abrir o WhatsApp com a mensagem de confirmação já preenchida.
+        <p className="text-xs text-brown-400 text-center mb-6">
+          Clique para abrir o WhatsApp com a mensagem já preenchida
         </p>
 
-        {/* Back links */}
-        <div className="flex gap-3">
-          <Link href="/" className="flex-1">
-            <Button
-              variant="outline"
-              className="w-full border-zinc-700 text-zinc-400 hover:text-white hover:bg-zinc-900"
-            >
-              <ShoppingBag className="mr-2 h-4 w-4" />
-              Ver mais produtos
-            </Button>
-          </Link>
-        </div>
+        <Link href="/">
+          <button className="w-full border-2 border-brown-200 text-brown-600 hover:bg-brown-50 font-semibold py-3 rounded-2xl flex items-center justify-center gap-2 transition-colors text-sm">
+            <ShoppingBag className="h-4 w-4" />
+            Ver mais peças
+          </button>
+        </Link>
       </div>
+
+      <footer className="border-t border-brown-100 mt-12 py-6 text-center text-xs text-brown-400">
+        <div className="flex items-center justify-center gap-1.5 mb-1">
+          <Heart className="h-3 w-3 text-brown-300 fill-brown-200" />
+          <span>Maranatha Moda Católica</span>
+        </div>
+        Irapuã — SP
+      </footer>
     </div>
   )
 }
 
 export default function SuccessPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="text-zinc-400">Carregando...</div>
-    </div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-brown-400">Carregando...</div>
+      </div>
+    }>
       <SuccessContent />
     </Suspense>
   )

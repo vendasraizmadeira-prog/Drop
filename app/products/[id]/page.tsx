@@ -1,11 +1,9 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, ShoppingBag, Star } from 'lucide-react'
+import { ArrowLeft, ShoppingBag, Heart, Truck, ShieldCheck } from 'lucide-react'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { Navbar } from '@/components/navbar'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/utils'
 import type { Product } from '@/types'
 
@@ -15,47 +13,33 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const supabase = createServerSupabaseClient()
-  const { data: product } = await supabase
-    .from('products')
-    .select('name, description')
-    .eq('id', params.id)
-    .single()
-
+  const { data: product } = await supabase.from('products').select('name, description').eq('id', params.id).single()
   if (!product) return { title: 'Produto não encontrado' }
   return { title: product.name, description: product.description }
 }
 
 export default async function ProductPage({ params }: PageProps) {
   const supabase = createServerSupabaseClient()
-  const { data: product } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', params.id)
-    .eq('active', true)
-    .single()
-
+  const { data: product } = await supabase.from('products').select('*').eq('id', params.id).eq('active', true).single()
   if (!product) notFound()
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
-      <div className="container py-8">
+      <div className="container py-8 max-w-5xl">
         <Link href="/">
-          <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white mb-8">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar para coleção
-          </Button>
+          <button className="flex items-center gap-1.5 text-sm text-brown-500 hover:text-brown-700 mb-8 transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar para a coleção
+          </button>
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* Image */}
-          <div className="relative aspect-square rounded-xl overflow-hidden bg-zinc-900">
+          <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-brown-50 border border-brown-100 shadow-sm">
             <Image
-              src={
-                product.image_url ||
-                'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80'
-              }
+              src={product.image_url || 'https://images.unsplash.com/photo-1594938298603-c8148c4b4e39?w=800&q=80'}
               alt={product.name}
               fill
               className="object-cover"
@@ -66,83 +50,76 @@ export default async function ProductPage({ params }: PageProps) {
 
           {/* Details */}
           <div className="flex flex-col justify-center">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-red-400 text-red-400" />
-                ))}
-              </div>
-              <span className="text-sm text-zinc-500">Exclusivo</span>
+            {/* Badge */}
+            <div className="inline-flex items-center gap-1.5 bg-brown-50 border border-brown-200 rounded-full px-3 py-1 mb-4 w-fit">
+              <Heart className="h-3 w-3 text-brown-400 fill-brown-300" />
+              <span className="text-xs font-semibold text-brown-500 uppercase tracking-wider">Exclusivo</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+            <h1 className="font-serif text-3xl md:text-4xl font-bold text-brown-800 mb-3 leading-tight">
               {product.name}
             </h1>
 
-            <p className="text-zinc-400 text-lg leading-relaxed mb-6">{product.description}</p>
+            <p className="text-brown-600 leading-relaxed mb-6">{product.description}</p>
 
             {/* Price */}
-            <div className="flex items-baseline gap-3 mb-8">
-              <span className="text-5xl font-black text-red-400">
+            <div className="flex items-baseline gap-2 mb-6">
+              <span className="font-serif text-4xl font-bold text-brown-700">
                 {formatCurrency(product.price)}
               </span>
-              <span className="text-zinc-500 text-sm">por peça</span>
+              <span className="text-brown-400 text-sm">por peça</span>
             </div>
 
             {/* Sizes */}
-            <div className="mb-8">
-              <p className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-3">
+            <div className="mb-6">
+              <p className="text-xs font-semibold text-brown-500 uppercase tracking-wider mb-3">
                 Tamanhos disponíveis
               </p>
               <div className="flex flex-wrap gap-2">
                 {(product as Product).sizes.map((size) => (
-                  <div
-                    key={size}
-                    className="w-12 h-12 flex items-center justify-center border border-zinc-700 rounded-lg text-sm font-bold text-white hover:border-red-500 hover:text-red-400 transition-colors cursor-default"
-                  >
+                  <div key={size} className="w-11 h-11 flex items-center justify-center border-2 border-brown-200 rounded-lg text-sm font-bold text-brown-600 hover:border-brown-500 hover:text-brown-800 transition-colors">
                     {size}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Info */}
-            <div className="grid grid-cols-2 gap-4 mb-8 text-sm">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-                <p className="text-zinc-500 mb-1">Pagamento</p>
-                <p className="text-white font-semibold">PIX (à vista)</p>
+            {/* Info grid */}
+            <div className="grid grid-cols-2 gap-3 mb-8">
+              <div className="bg-brown-50 border border-brown-100 rounded-xl p-3 flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-brown-400 shrink-0" />
+                <div>
+                  <p className="text-xs text-brown-400">Pagamento</p>
+                  <p className="text-sm font-semibold text-brown-700">PIX</p>
+                </div>
               </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-                <p className="text-zinc-500 mb-1">Entrega</p>
-                <p className="text-white font-semibold">Todo Brasil</p>
-              </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-                <p className="text-zinc-500 mb-1">Produção</p>
-                <p className="text-white font-semibold">Sob encomenda</p>
-              </div>
-              <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
-                <p className="text-zinc-500 mb-1">Material</p>
-                <p className="text-white font-semibold">100% Algodão</p>
+              <div className="bg-brown-50 border border-brown-100 rounded-xl p-3 flex items-center gap-2">
+                <Truck className="h-4 w-4 text-brown-400 shrink-0" />
+                <div>
+                  <p className="text-xs text-brown-400">Entrega</p>
+                  <p className="text-sm font-semibold text-brown-700">Todo Brasil</p>
+                </div>
               </div>
             </div>
 
             {/* CTA */}
             <Link href={`/order/${product.id}`}>
-              <Button
-                size="xl"
-                className="w-full bg-red-500 hover:bg-red-600 text-white font-black text-lg uppercase tracking-wide"
-              >
-                <ShoppingBag className="mr-2 h-6 w-6" />
+              <button className="w-full bg-brown-600 hover:bg-brown-700 text-white font-bold text-base py-4 rounded-2xl flex items-center justify-center gap-2 transition-colors shadow-md">
+                <ShoppingBag className="h-5 w-5" />
                 Fazer Encomenda
-              </Button>
+              </button>
             </Link>
-
-            <p className="text-center text-xs text-zinc-600 mt-3">
-              Você será redirecionado para o formulário de encomenda
+            <p className="text-center text-xs text-brown-400 mt-3">
+              Produção sob encomenda · 100% algodão
             </p>
           </div>
         </div>
       </div>
+
+      {/* Footer mini */}
+      <footer className="border-t border-brown-100 mt-16 py-6 text-center text-xs text-brown-400">
+        © {new Date().getFullYear()} Maranatha Moda Católica — Irapuã, SP
+      </footer>
     </div>
   )
 }

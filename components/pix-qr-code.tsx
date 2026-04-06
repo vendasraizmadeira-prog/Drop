@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'react-qr-code'
 import { Copy, Check } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { generatePixPayload } from '@/lib/pix'
 import { formatCurrency } from '@/lib/utils'
 
@@ -15,25 +14,12 @@ interface PixQRCodeProps {
   description?: string
 }
 
-export function PixQRCode({
-  pixKey,
-  amount,
-  merchantName = 'LOJA',
-  merchantCity = 'BRASIL',
-  description,
-}: PixQRCodeProps) {
+export function PixQRCode({ pixKey, amount, merchantName = 'MARANATHA', merchantCity = 'IRAPUA', description }: PixQRCodeProps) {
   const [payload, setPayload] = useState('')
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    const pix = generatePixPayload({
-      pixKey,
-      merchantName,
-      merchantCity,
-      amount,
-      description,
-    })
-    setPayload(pix)
+    setPayload(generatePixPayload({ pixKey, merchantName, merchantCity, amount, description }))
   }, [pixKey, amount, merchantName, merchantCity, description])
 
   async function handleCopy() {
@@ -45,40 +31,34 @@ export function PixQRCode({
   return (
     <div className="flex flex-col items-center gap-4">
       {/* QR Code */}
-      <div className="bg-white p-4 rounded-xl shadow-lg">
-        <QRCode value={payload || pixKey} size={200} />
+      <div className="bg-white p-4 rounded-2xl border border-brown-100 shadow-sm">
+        <QRCode value={payload || pixKey} size={180} fgColor="#5C3317" />
       </div>
 
       {/* Valor */}
-      <div className="text-center">
-        <p className="text-sm text-zinc-400 mb-1">Valor a pagar</p>
-        <p className="text-3xl font-black text-red-400">{formatCurrency(amount)}</p>
-      </div>
+      {amount > 0 && (
+        <div className="text-center">
+          <p className="text-xs text-brown-400 mb-0.5">Valor a pagar</p>
+          <p className="font-serif text-3xl font-bold text-brown-700">{formatCurrency(amount)}</p>
+        </div>
+      )}
 
       {/* Chave PIX */}
-      <div className="w-full bg-zinc-900 rounded-lg border border-zinc-700 p-3">
-        <p className="text-xs text-zinc-500 mb-1 uppercase tracking-wider font-semibold">
-          Chave PIX
-        </p>
+      <div className="w-full bg-brown-50 rounded-xl border border-brown-200 p-3">
+        <p className="text-[10px] text-brown-400 uppercase tracking-wider font-semibold mb-1">Chave PIX</p>
         <div className="flex items-center gap-2">
-          <p className="flex-1 text-sm text-zinc-200 font-mono break-all">{pixKey}</p>
-          <Button
-            size="icon"
-            variant="ghost"
+          <p className="flex-1 text-sm text-brown-700 font-mono break-all">{pixKey}</p>
+          <button
             onClick={handleCopy}
-            className="shrink-0 text-zinc-400 hover:text-white"
+            className="shrink-0 p-1.5 rounded-lg text-brown-400 hover:text-brown-700 hover:bg-brown-100 transition-colors"
           >
-            {copied ? (
-              <Check className="h-4 w-4 text-green-400" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-          </Button>
+            {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+          </button>
         </div>
       </div>
 
-      <p className="text-xs text-zinc-500 text-center">
-        Escaneie o QR Code ou copie a chave PIX acima para realizar o pagamento
+      <p className="text-xs text-brown-400 text-center">
+        Escaneie o QR Code ou copie a chave PIX para pagar
       </p>
     </div>
   )
