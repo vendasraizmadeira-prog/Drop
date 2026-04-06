@@ -7,12 +7,18 @@ import type { Product } from '@/types'
 export const revalidate = 60
 
 export default async function HomePage() {
-  const supabase = createServerSupabaseClient()
-  const { data: products } = await supabase
-    .from('products')
-    .select('*')
-    .eq('active', true)
-    .order('created_at', { ascending: false })
+  let products: Product[] = []
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .eq('active', true)
+      .order('created_at', { ascending: false })
+    products = data || []
+  } catch {
+    products = []
+  }
 
   return (
     <div className="min-h-screen bg-black">
