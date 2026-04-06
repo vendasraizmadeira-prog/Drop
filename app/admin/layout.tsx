@@ -8,8 +8,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen bg-zinc-950">
       <AdminSidebar />
-      <main className="pl-64">
-        <div className="p-8">{children}</div>
+      {/* Desktop: padding-left para sidebar fixa | Mobile: padding-top para top bar */}
+      <main className="lg:pl-64 pt-14 lg:pt-0">
+        <div className="p-4 md:p-8">{children}</div>
       </main>
     </div>
   )
