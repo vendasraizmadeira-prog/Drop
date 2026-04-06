@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { ProductCard } from '@/components/product-card'
 import { Navbar } from '@/components/navbar'
-import { MessageCircle, Instagram, MapPin, Heart, ShieldCheck, Truck } from 'lucide-react'
+import { MessageCircle, Instagram, MapPin, Heart, ShieldCheck } from 'lucide-react'
 import type { Product } from '@/types'
 
 export const revalidate = 60
@@ -46,14 +46,10 @@ export default async function HomePage() {
 
             <p className="text-brown-600 text-base md:text-lg leading-relaxed mb-8 max-w-lg mx-auto">
               Peças exclusivas por encomenda, feitas com carinho para quem vive e
-              expressa a fé no dia a dia. De Irapuã para todo o Brasil.
+              expressa a fé no dia a dia.
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-5 text-sm text-brown-500">
-              <div className="flex items-center gap-2">
-                <Truck className="h-4 w-4" />
-                <span>Entrega em todo Brasil</span>
-              </div>
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4" />
                 <span>Pagamento seguro via PIX</span>
