@@ -1,14 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Loader2, ImageIcon } from 'lucide-react'
+import { Loader2, Upload, X, ImageIcon } from 'lucide-react'
 import Image from 'next/image'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { formatCurrency } from '@/lib/utils'
 import type { Product, Size } from '@/types'
 
@@ -21,7 +17,9 @@ interface ProductFormProps {
 
 export function ProductForm({ product, mode }: ProductFormProps) {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [form, setForm] = useState({
     name: product?.name || '',
     description: product?.description || '',
@@ -38,6 +36,35 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         ? prev.sizes.filter((s) => s !== size)
         : [...prev.sizes, size],
     }))
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    try {
+      const data = new FormData()
+      data.append('file', file)
+
+      const res = await fetch('/api/upload', { method: 'POST', body: data })
+      const json = await res.json()
+
+      if (!res.ok) throw new Error(json.message || 'Erro no upload')
+
+      setForm((prev) => ({ ...prev, image_url: json.url }))
+      toast.success('Imagem enviada!')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao enviar imagem')
+    } finally {
+      setUploading(false)
+      // Limpa o input para permitir reenvio do mesmo arquivo
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  function handleRemoveImage() {
+    setForm((prev) => ({ ...prev, image_url: '' }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -80,36 +107,113 @@ export function ProductForm({ product, mode }: ProductFormProps) {
     }
   }
 
+  const inputClass = "w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 placeholder:text-zinc-500"
+  const labelClass = "block text-sm font-medium text-zinc-300 mb-1.5"
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+
+      {/* Upload de imagem */}
+      <div>
+        <label className={labelClass}>Imagem do produto</label>
+
+        {form.image_url ? (
+          /* Preview da imagem */
+          <div className="relative w-full aspect-[4/3] max-w-xs rounded-xl overflow-hidden border border-zinc-700 group">
+            <Image
+              src={form.image_url}
+              alt="Preview"
+              fill
+              className="object-cover"
+              sizes="320px"
+            />
+            {/* Overlay com ações */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-center justify-center gap-3 opacity-0 group-hover:opacity-100">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="bg-white text-zinc-800 text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 hover:bg-zinc-100"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Trocar
+              </button>
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="bg-red-500 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 hover:bg-red-600"
+              >
+                <X className="h-3.5 w-3.5" />
+                Remover
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Área de upload */
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="w-full max-w-xs aspect-[4/3] border-2 border-dashed border-zinc-700 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-red-500 hover:bg-zinc-900 transition-all cursor-pointer disabled:opacity-60"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="h-8 w-8 text-zinc-500 animate-spin" />
+                <p className="text-sm text-zinc-500">Enviando...</p>
+              </>
+            ) : (
+              <>
+                <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
+                  <ImageIcon className="h-6 w-6 text-zinc-500" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-medium text-zinc-400">Clique para enviar</p>
+                  <p className="text-xs text-zinc-600 mt-0.5">JPG, PNG ou WEBP · máx. 5MB</p>
+                </div>
+              </>
+            )}
+          </button>
+        )}
+
+        {/* Input oculto */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      </div>
+
       {/* Nome */}
-      <div className="space-y-2">
-        <Label className="text-zinc-300">Nome do produto *</Label>
-        <Input
+      <div>
+        <label className={labelClass}>Nome do produto *</label>
+        <input
+          type="text"
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          placeholder="Ex: Camiseta Oversized Básica"
+          placeholder="Ex: Camiseta Nossa Senhora Aparecida"
           required
-          className="bg-zinc-900 border-zinc-700 text-white"
+          className={inputClass}
         />
       </div>
 
       {/* Descrição */}
-      <div className="space-y-2">
-        <Label className="text-zinc-300">Descrição</Label>
-        <Textarea
+      <div>
+        <label className={labelClass}>Descrição</label>
+        <textarea
           value={form.description}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
           placeholder="Descrição do produto, materiais, detalhes..."
           rows={3}
-          className="bg-zinc-900 border-zinc-700 text-white resize-none"
+          className={`${inputClass} resize-none`}
         />
       </div>
 
       {/* Preço */}
-      <div className="space-y-2">
-        <Label className="text-zinc-300">Preço (R$) *</Label>
-        <Input
+      <div>
+        <label className={labelClass}>Preço (R$) *</label>
+        <input
           type="number"
           step="0.01"
           min="0"
@@ -117,45 +221,18 @@ export function ProductForm({ product, mode }: ProductFormProps) {
           onChange={(e) => setForm({ ...form, price: e.target.value })}
           placeholder="59.90"
           required
-          className="bg-zinc-900 border-zinc-700 text-white"
+          className={inputClass}
         />
         {form.price && !isNaN(parseFloat(form.price)) && (
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 mt-1">
             Valor: {formatCurrency(parseFloat(form.price))}
           </p>
         )}
       </div>
 
-      {/* Imagem URL */}
-      <div className="space-y-2">
-        <Label className="text-zinc-300">URL da imagem</Label>
-        <Input
-          value={form.image_url}
-          onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-          placeholder="https://..."
-          className="bg-zinc-900 border-zinc-700 text-white"
-        />
-        {form.image_url && (
-          <div className="relative w-32 h-32 rounded-lg overflow-hidden border border-zinc-700">
-            <Image
-              src={form.image_url}
-              alt="Preview"
-              fill
-              className="object-cover"
-              onError={() => setForm({ ...form, image_url: '' })}
-            />
-          </div>
-        )}
-        {!form.image_url && (
-          <div className="w-32 h-32 rounded-lg border border-zinc-700 bg-zinc-900 flex items-center justify-center">
-            <ImageIcon className="h-8 w-8 text-zinc-600" />
-          </div>
-        )}
-      </div>
-
       {/* Tamanhos */}
-      <div className="space-y-3">
-        <Label className="text-zinc-300">Tamanhos disponíveis *</Label>
+      <div>
+        <label className={labelClass}>Tamanhos disponíveis *</label>
         <div className="flex gap-3">
           {SIZES.map((size) => (
             <button
@@ -174,7 +251,7 @@ export function ProductForm({ product, mode }: ProductFormProps) {
         </div>
       </div>
 
-      {/* Status */}
+      {/* Status ativo */}
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -183,43 +260,36 @@ export function ProductForm({ product, mode }: ProductFormProps) {
             form.active ? 'bg-red-500' : 'bg-zinc-700'
           }`}
         >
-          <span
-            className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-              form.active ? 'translate-x-6' : 'translate-x-1'
-            }`}
-          />
+          <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+            form.active ? 'translate-x-6' : 'translate-x-1'
+          }`} />
         </button>
-        <Label className="text-zinc-300 cursor-pointer" onClick={() => setForm({ ...form, active: !form.active })}>
-          {form.active ? 'Produto ativo (visível na loja)' : 'Produto inativo (oculto na loja)'}
-        </Label>
+        <span
+          className="text-sm text-zinc-300 cursor-pointer"
+          onClick={() => setForm({ ...form, active: !form.active })}
+        >
+          {form.active ? 'Ativo (visível na loja)' : 'Inativo (oculto na loja)'}
+        </span>
       </div>
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">
-        <Button
+        <button
           type="submit"
-          disabled={loading}
-          className="bg-red-500 hover:bg-red-600 text-white font-bold"
+          disabled={loading || uploading}
+          className="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2.5 rounded-lg transition-colors disabled:opacity-60 flex items-center gap-2"
         >
           {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Salvando...
-            </>
-          ) : mode === 'edit' ? (
-            'Salvar alterações'
-          ) : (
-            'Criar produto'
-          )}
-        </Button>
-        <Button
+            <><Loader2 className="h-4 w-4 animate-spin" /> Salvando...</>
+          ) : mode === 'edit' ? 'Salvar alterações' : 'Criar produto'}
+        </button>
+        <button
           type="button"
-          variant="outline"
           onClick={() => router.back()}
-          className="border-zinc-700 text-zinc-400 hover:text-white"
+          className="border border-zinc-700 text-zinc-400 hover:text-white px-6 py-2.5 rounded-lg transition-colors"
         >
           Cancelar
-        </Button>
+        </button>
       </div>
     </form>
   )
